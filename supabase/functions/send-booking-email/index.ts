@@ -2,6 +2,9 @@
 // This function logs and attempts a Resend call if RESEND_API_KEY is set.
 // Booking succeeds regardless of email outcome.
 
+// Declare Deno global to fix TypeScript errors in Node/React environments
+declare const Deno: any;
+
 const ADMIN_EMAIL = "sanknoes.edu@gmail.com";
 const FROM_EMAIL = "TrainHub <onboarding@resend.dev>";
 
@@ -10,12 +13,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface Payload {
-  bookingDate: string;
-  collegeName: string;
-  contactPerson: string;
-  email: string;
-  phone: string;
+interface WebhookPayload {
+  type: string;
+  table: string;
+  record: {
+    booking_date: string;
+    college_name: string;
+    contact_person: string;
+    email: string;
+    phone: string;
+  };
 }
 
 async function sendViaResend(to: string, subject: string, html: string) {
@@ -37,8 +44,20 @@ async function sendViaResend(to: string, subject: string, html: string) {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const data = (await req.json()) as Payload;
-    const dateStr = new Date(data.bookingDate).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const payload = (await req.json()) as WebhookPayload;
+    
+    // Allow manual triggers for backwards compatibility or testing, but prefer webhook
+    const data = payload.record || payload;
+    
+    const bookingDateStr = data.booking_date || (data as any).bookingDate;
+    const collegeName = data.college_name || (data as any).collegeName;
+    const contactPerson = data.contact_person || (data as any).contactPerson;
+    
+    if (!bookingDateStr || !collegeName || !contactPerson) {
+      throw new Error("Invalid payload");
+    }
+
+    const dateStr = new Date(bookingDateStr).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
     const userHtml = `
       <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#1F2937">

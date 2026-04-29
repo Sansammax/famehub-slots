@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { supabase } from "@/services/supabase/client";
+import { BookingService } from "@/services/booking.service";
 import { toast } from "sonner";
 import { CalendarCheck, Lock, Mail, CheckCircle2, ArrowRight } from "lucide-react";
 import { formatLong, toISODate } from "@/lib/date-utils";
@@ -40,16 +41,9 @@ function BookPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
   async function load() {
-    const [bRes, blRes] = await Promise.all([
-      supabase.rpc("get_public_bookings"),
-      supabase.from("blocked_dates").select("blocked_date"),
-    ]);
-    if (bRes.data) {
-      const map: BookingMap = {};
-      for (const r of bRes.data as any[]) map[r.booking_date] = r.college_name;
-      setBookings(map);
-    }
-    if (blRes.data) setBlocked(new Set((blRes.data as any[]).map(r => r.blocked_date)));
+    const data = await BookingService.getAvailability();
+    setBookings(data.bookings);
+    setBlocked(data.blocked);
   }
 
   useEffect(() => { load(); }, []);
@@ -59,7 +53,10 @@ function BookPage() {
     setStep("confirm");
   }
 
-  async function submit() {
+  async function submit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    console.log("BOOK BUTTON CLICKED");
+    
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
       const errs: Partial<Record<keyof FormData, string>> = {};
@@ -72,41 +69,43 @@ function BookPage() {
     setErrors({});
     if (!selectedDate) return;
     setSubmitting(true);
+    
     try {
-      const iso = toISODate(selectedDate);
-      const { error } = await supabase.from("bookings").insert({
-        booking_date: iso,
-        college_name: parsed.data.collegeName,
-        contact_person: parsed.data.contactPerson,
-        phone: parsed.data.phone,
-        whatsapp: parsed.data.whatsapp || null,
-        email: parsed.data.email,
-        notes: parsed.data.notes || null,
-      });
+      const isoDate = toISODate(selectedDate);
+      
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([
+          {
+            college_name: parsed.data.collegeName,
+            contact_person: parsed.data.contactPerson,
+            phone: parsed.data.phone,
+            whatsapp: parsed.data.whatsapp || null,
+            email: parsed.data.email,
+            booking_date: isoDate,
+            notes: parsed.data.notes || null
+          }
+        ]);
+
+      console.log("INSERT DATA:", data);
+      console.log("INSERT ERROR:", error);
+
       if (error) {
-        if (error.code === "23505" || /duplicate/i.test(error.message)) {
-          toast.error("That date was just booked", { description: "Please pick another available date." });
-          await load();
-          setStep("closed");
-          return;
-        }
-        throw error;
+        throw new Error(error.message);
       }
-      // Fire-and-forget email notification (do not block UX on failure)
-      supabase.functions.invoke("send-booking-email", {
-        body: {
-          bookingDate: iso,
-          collegeName: parsed.data.collegeName,
-          contactPerson: parsed.data.contactPerson,
-          email: parsed.data.email,
-          phone: parsed.data.phone,
-        },
-      }).catch(() => { /* silently ignore */ });
 
       setStep("success");
+      // Only update UI by fetching fresh data from DB
       await load();
     } catch (e: any) {
-      toast.error("Booking failed", { description: e?.message ?? "Please try again." });
+      console.error("Booking error caught:", e);
+      if (e.message?.includes("23505") || e.message?.toLowerCase().includes("duplicate")) {
+        toast.error("That date was just booked", { description: "Please pick another available date." });
+        await load();
+        setStep("closed");
+      } else {
+        toast.error("Booking failed", { description: e?.message ?? "Please try again." });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -171,7 +170,7 @@ function BookPage() {
                 <SheetTitle className="text-xl">Booking details</SheetTitle>
                 <SheetDescription>{formatLong(selectedDate)}</SheetDescription>
               </SheetHeader>
-              <div className="mt-6 space-y-4">
+              <form onSubmit={submit} className="mt-6 space-y-4">
                 <Field label="College Name" error={errors.collegeName}>
                   <Input value={form.collegeName} onChange={e => setForm({ ...form, collegeName: e.target.value })} placeholder="e.g. IIT Madras" />
                 </Field>
@@ -195,10 +194,10 @@ function BookPage() {
                 <div className="rounded-xl bg-surface-soft border border-border p-3 text-xs text-muted-foreground">
                   Selected date: <span className="font-semibold text-foreground">{formatLong(selectedDate)}</span>
                 </div>
-                <Button disabled={submitting} onClick={submit} className="w-full bg-gradient-primary text-primary-foreground shadow-glow h-11">
+                <Button type="submit" disabled={submitting} className="w-full bg-gradient-primary text-primary-foreground shadow-glow h-11">
                   {submitting ? "Confirming…" : "Confirm Booking"}
                 </Button>
-              </div>
+              </form>
             </>
           )}
 

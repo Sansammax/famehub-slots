@@ -27,7 +27,7 @@ function Index() {
               <span className="text-gradient">for Colleges</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Book a single, dedicated training day for your campus. One slot per day — first come, first served. Transparent, premium, and effortless.
+              Book a single, dedicated training day for your campus.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow hover:shadow-elevated transition-base h-12 px-7 text-base">
@@ -37,10 +37,9 @@ function Index() {
                 <Link to="/trainers">Meet Trainers</Link>
               </Button>
             </div>
-            <div className="mt-12 inline-flex items-center gap-2 text-xs text-muted-foreground">
-              <ShieldCheck className="h-4 w-4 text-success" />
-              One booking per day · Instantly locked · Email confirmed
-            </div>
+
+
+
           </div>
         </section>
 
@@ -136,7 +135,7 @@ function Index() {
             <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(60% 80% at 50% 0%, white, transparent)" }} />
             <div className="relative">
               <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground tracking-tight">Ready to upskill your campus?</h2>
-              <p className="mt-4 text-primary-foreground/80 max-w-xl mx-auto">Pick an open date and lock it in 60 seconds. No back-and-forth.</p>
+              <p className="mt-4 text-primary-foreground/80 max-w-xl mx-auto">Pick an open date and lock it </p>
               <Button asChild size="lg" className="mt-8 bg-card text-primary hover:bg-card/90 h-12 px-7 shadow-soft">
                 <Link to="/book">Open Calendar <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
               </Button>

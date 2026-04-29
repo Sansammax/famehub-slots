@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/services/supabase/client";
+import { AdminService } from "@/services/admin.service";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, CalendarDays, ListChecks, Settings, LogOut, Trash2 } from "lucide-react";
@@ -56,12 +57,9 @@ function AdminDashboard() {
   }, [nav]);
 
   async function loadAll() {
-    const [bRes, blRes] = await Promise.all([
-      supabase.from("bookings").select("*").order("booking_date", { ascending: true }),
-      supabase.from("blocked_dates").select("blocked_date").order("blocked_date"),
-    ]);
-    if (bRes.data) setBookings(bRes.data as any);
-    if (blRes.data) setBlocked((blRes.data as any[]).map(r => r.blocked_date));
+    const { bookings: b, blocked: bl } = await AdminService.getAllData();
+    setBookings(b);
+    setBlocked(bl);
   }
 
   const bookingMap: BookingMap = useMemo(() => {
@@ -75,25 +73,28 @@ function AdminDashboard() {
 
   async function deleteBooking(id: string) {
     if (!confirm("Delete this booking?")) return;
-    const { error } = await supabase.from("bookings").delete().eq("id", id);
-    if (error) return toast.error("Failed", { description: error.message });
-    toast.success("Booking deleted");
-    await loadAll();
+    try {
+      await AdminService.deleteBooking(id);
+      toast.success("Booking deleted");
+      await loadAll();
+    } catch (error: any) {
+      toast.error("Failed", { description: error.message });
+    }
   }
 
   async function toggleBlock(date: Date) {
     const iso = toISODate(date);
-    if (blocked.includes(iso)) {
-      const { error } = await supabase.from("blocked_dates").delete().eq("blocked_date", iso);
-      if (error) return toast.error("Failed", { description: error.message });
-      toast.success("Date unblocked");
-    } else {
-      if (bookingMap[iso]) return toast.error("Cannot block a booked date");
-      const { error } = await supabase.from("blocked_dates").insert({ blocked_date: iso });
-      if (error) return toast.error("Failed", { description: error.message });
-      toast.success("Date blocked");
+    if (!blocked.includes(iso) && bookingMap[iso]) {
+      return toast.error("Cannot block a booked date");
     }
-    await loadAll();
+    
+    try {
+      const action = await AdminService.toggleBlockDate(date, blocked.includes(iso));
+      toast.success(`Date ${action}`);
+      await loadAll();
+    } catch (error: any) {
+      toast.error("Failed", { description: error.message });
+    }
   }
 
   async function signOut() {
