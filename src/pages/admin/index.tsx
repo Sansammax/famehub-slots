@@ -35,7 +35,13 @@ function AdminDashboard() {
       if (!isAdmin) {
         const { count } = await supabase.from("user_roles").select("*", { count: "exact", head: true });
         if ((count ?? 0) === 0) {
-          await supabase.from("user_roles").insert({ user_id: session.user.id, role: "admin" as any });
+          const { error: insErr } = await supabase.from("user_roles").insert({ user_id: session.user.id, role: "admin" as any });
+          if (insErr) {
+            toast.error("Failed to setup admin", { description: insErr.message });
+            await supabase.auth.signOut();
+            nav({ to: "/admin/login" });
+            return;
+          }
           if (!mounted) return;
           setAuthorized(true);
           await loadAll();

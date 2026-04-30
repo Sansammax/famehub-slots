@@ -9,14 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './pages/__root'
+import { Route as TrainersRouteImport } from './pages/trainers'
+import { Route as PlacementsRouteImport } from './pages/placements'
+import { Route as ContactRouteImport } from './pages/contact'
 import { Route as BookRouteImport } from './pages/book'
+import { Route as AboutRouteImport } from './pages/about'
 import { Route as IndexRouteImport } from './pages/index'
 import { Route as AdminIndexRouteImport } from './pages/admin/index'
 import { Route as AdminLoginRouteImport } from './pages/admin/login'
 
+const TrainersRoute = TrainersRouteImport.update({
+  id: '/trainers',
+  path: '/trainers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacementsRoute = PlacementsRouteImport.update({
+  id: '/placements',
+  path: '/placements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookRoute = BookRouteImport.update({
   id: '/book',
   path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,45 +61,114 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/book': typeof BookRoute
+  '/contact': typeof ContactRoute
+  '/placements': typeof PlacementsRoute
+  '/trainers': typeof TrainersRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/book': typeof BookRoute
+  '/contact': typeof ContactRoute
+  '/placements': typeof PlacementsRoute
+  '/trainers': typeof TrainersRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/book': typeof BookRoute
+  '/contact': typeof ContactRoute
+  '/placements': typeof PlacementsRoute
+  '/trainers': typeof TrainersRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/book' | '/admin/login' | '/admin/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/book'
+    | '/contact'
+    | '/placements'
+    | '/trainers'
+    | '/admin/login'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/book' | '/admin/login' | '/admin'
-  id: '__root__' | '/' | '/book' | '/admin/login' | '/admin/'
+  to:
+    | '/'
+    | '/about'
+    | '/book'
+    | '/contact'
+    | '/placements'
+    | '/trainers'
+    | '/admin/login'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/book'
+    | '/contact'
+    | '/placements'
+    | '/trainers'
+    | '/admin/login'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   BookRoute: typeof BookRoute
+  ContactRoute: typeof ContactRoute
+  PlacementsRoute: typeof PlacementsRoute
+  TrainersRoute: typeof TrainersRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trainers': {
+      id: '/trainers'
+      path: '/trainers'
+      fullPath: '/trainers'
+      preLoaderRoute: typeof TrainersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/placements': {
+      id: '/placements'
+      path: '/placements'
+      fullPath: '/placements'
+      preLoaderRoute: typeof PlacementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/book': {
       id: '/book'
       path: '/book'
       fullPath: '/book'
       preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,7 +197,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   BookRoute: BookRoute,
+  ContactRoute: ContactRoute,
+  PlacementsRoute: PlacementsRoute,
+  TrainersRoute: TrainersRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

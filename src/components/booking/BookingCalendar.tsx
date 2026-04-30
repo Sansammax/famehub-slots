@@ -41,7 +41,7 @@ export function BookingCalendar({ bookings, blocked, onSelect, showCollegeNames 
         <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-border">
           <div>
             <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">{monthLabel}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">One booking per day · Tap an open date</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Tap an open date to book</p>
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setCursor(addMonths(cursor, -1))} className="p-2 rounded-lg hover:bg-surface-soft transition-base" aria-label="Previous month">
@@ -77,7 +77,7 @@ export function BookingCalendar({ bookings, blocked, onSelect, showCollegeNames 
                   state === "outside" && "text-muted-foreground/40 cursor-default",
                   state === "past" && "text-muted-foreground/50 bg-surface-soft/40 cursor-not-allowed",
                   state === "blocked" && "bg-surface-muted text-muted-foreground cursor-not-allowed border border-border",
-                  state === "booked" && "bg-destructive/8 text-destructive cursor-not-allowed border border-destructive/20",
+                  state === "booked" && "bg-destructive/8 text-destructive cursor-not-allowed border border-destructive/20 booked-pulse",
                   state === "available" && "bg-success/8 text-foreground hover:bg-gradient-primary hover:text-primary-foreground hover:shadow-glow border border-success/20 hover:border-transparent cursor-pointer",
                   isToday && "ring-2 ring-primary ring-offset-2 ring-offset-card",
                 )}
