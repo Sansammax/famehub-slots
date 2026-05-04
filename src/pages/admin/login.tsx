@@ -26,7 +26,7 @@ function AdminLogin() {
           options: { emailRedirectTo: `${window.location.origin}/admin` },
         });
         if (error) throw error;
-        toast.success("Account created", { description: "Check your email to confirm, then ask an existing admin to grant you the admin role." });
+        toast.success("Account created", { description: "Check your email to confirm. The first confirmed account automatically becomes the admin." });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

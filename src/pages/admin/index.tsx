@@ -32,25 +32,23 @@ function AdminDashboard() {
       if (!session) { nav({ to: "/admin/login" }); return; }
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
       const isAdmin = (roles ?? []).some((r: any) => r.role === "admin");
+      
       if (!isAdmin) {
-        const { count } = await supabase.from("user_roles").select("*", { count: "exact", head: true });
-        if ((count ?? 0) === 0) {
-          const { error: insErr } = await supabase.from("user_roles").insert({ user_id: session.user.id, role: "admin" as any });
-          if (insErr) {
-            toast.error("Failed to setup admin", { description: insErr.message });
-            await supabase.auth.signOut();
-            nav({ to: "/admin/login" });
-            return;
-          }
-          if (!mounted) return;
-          setAuthorized(true);
-          await loadAll();
-          setLoading(false);
+        // Attempt to claim the admin role. 
+        // This will only succeed if NO admin exists, enforced securely by our RLS policies.
+        const { error: insErr } = await supabase.from("user_roles").insert({ user_id: session.user.id, role: "admin" as any });
+        
+        if (insErr) {
+          toast.error("Not authorized", { description: "Your account doesn't have admin access." });
+          await supabase.auth.signOut();
+          nav({ to: "/admin/login" });
           return;
         }
-        toast.error("Not authorized", { description: "Your account doesn't have admin access." });
-        await supabase.auth.signOut();
-        nav({ to: "/admin/login" });
+        
+        if (!mounted) return;
+        setAuthorized(true);
+        await loadAll();
+        setLoading(false);
         return;
       }
       if (!mounted) return;
